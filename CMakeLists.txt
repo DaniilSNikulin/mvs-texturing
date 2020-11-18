@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.1)
 
-LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/elibs/tbb")
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-project(Texturing)
+project(TexRecon)
 include(ExternalProject)
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "Setting build type to 'RELWITHDEBINFO' as none was specified.")
@@ -32,28 +34,28 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpmath=sse -funroll-loops")
 endif()
 
-find_package(PNG REQUIRED)
+find_package(PNG  REQUIRED)
 find_package(JPEG REQUIRED)
 find_package(TIFF REQUIRED)
 
+set(LIBRARY_INTERFACE   "${PROJECT_NAME}")
+set(ELIBRARY_INTERFACE  "${LIBRARY_INTERFACE}Elibs")
+set(INSTALL_CONFIGDIR   "${CMAKE_INSTALL_LIBDIR}/cmake/${LIBRARY_INTERFACE}")
+
 add_subdirectory(elibs)
-include_directories(SYSTEM
-    ${CMAKE_SOURCE_DIR}/elibs/rayint/libs
-    ${CMAKE_SOURCE_DIR}/elibs/mve/libs
-    ${CMAKE_SOURCE_DIR}/elibs/eigen
-    ${CMAKE_SOURCE_DIR}/elibs/mapmap/
-    ${CMAKE_SOURCE_DIR}/elibs/mapmap/mapmap
-    ${CMAKE_SOURCE_DIR}/elibs/mapmap/ext/dset
-)
-
-include_directories(
-    libs
-)
-
-link_directories(
-    ${CMAKE_SOURCE_DIR}/elibs/mve/libs/mve
-    ${CMAKE_SOURCE_DIR}/elibs/mve/libs/util
-)
-
 add_subdirectory(libs)
 add_subdirectory(apps)
+
+configure_package_config_file(
+    "${CMAKE_SOURCE_DIR}/cmake/${LIBRARY_INTERFACE}Config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_INTERFACE}Config.cmake"
+    INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
+)
+install(
+  FILES
+    "${CMAKE_SOURCE_DIR}/cmake/FindTBB.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_INTERFACE}Config.cmake"
+  DESTINATION
+    ${INSTALL_CONFIGDIR}
+)
+

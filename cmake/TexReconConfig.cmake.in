@@ -1,0 +1,9 @@
+include(CMakeFindDependencyMacro)
+
+get_filename_component(CONFIG_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_FILE}" PATH)
+LIST(APPEND CMAKE_MODULE_PATH "${CONFIG_INSTALL_PREFIX}")
+find_dependency(TBB REQUIRED)
+
+include("${CMAKE_CURRENT_LIST_DIR}/@ELIBRARY_INTERFACE@Targets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/@LIBRARY_INTERFACE@Targets.cmake")
+

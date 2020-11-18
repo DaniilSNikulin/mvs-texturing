@@ -8,6 +8,17 @@ externalproject_add(ext_mapmap
     BUILD_COMMAND   ""
     INSTALL_COMMAND ""
 )
+add_library(mapmap INTERFACE)
+add_dependencies(mapmap ext_mapmap)
+target_include_directories(mapmap SYSTEM INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/elibs/mapmap>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/elibs/mapmap/mapmap>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/elibs/mapmap/ext/dset>
+    $<INSTALL_INTERFACE:include/tex/elibs/mapmap>
+    $<INSTALL_INTERFACE:include/tex/elibs/mapmap/mapmap>
+    $<INSTALL_INTERFACE:include/tex/elibs/mapmap/ext/dset>
+)
+
 
 externalproject_add(ext_rayint
     PREFIX          ext_rayint
@@ -19,16 +30,30 @@ externalproject_add(ext_rayint
     BUILD_COMMAND   ""
     INSTALL_COMMAND ""
 )
+add_library(rayint INTERFACE)
+add_dependencies(rayint ext_rayint)
+target_include_directories(rayint SYSTEM INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/elibs/rayint/libs>
+    $<INSTALL_INTERFACE:include/tex/elibs/rayint/libs>
+)
+
 
 externalproject_add(ext_eigen
     PREFIX          ext_eigen
-    URL             https://bitbucket.org/eigen/eigen/get/3.3.2.tar.gz
-    URL_MD5         36b5731ab7d7e0c10843ac93bd9fd270
+    URL             https://gitlab.com/libeigen/eigen/-/archive/3.3.2/eigen-3.3.2.tar.gz
+    URL_MD5         02edfeec591ae09848223d622700a10b
     SOURCE_DIR      ${CMAKE_SOURCE_DIR}/elibs/eigen
     CONFIGURE_COMMAND ""
     BUILD_COMMAND   ""
     INSTALL_COMMAND ""
 )
+add_library(eigen INTERFACE)
+add_dependencies(eigen ext_eigen)
+target_include_directories(eigen SYSTEM INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/elibs/eigen>
+    $<INSTALL_INTERFACE:include/tex/elibs/eigen>
+)
+
 
 externalproject_add(ext_mve
     PREFIX          mve
@@ -40,3 +65,70 @@ externalproject_add(ext_mve
     BUILD_IN_SOURCE 1
     INSTALL_COMMAND ""
 )
+if (WIN32)
+    set(lib_ext ".lib")
+else()
+    set(lib_ext ".a")
+endif()
+add_library(mve INTERFACE)
+add_dependencies(mve ext_mve)
+target_include_directories(mve SYSTEM INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/elibs/mve/libs>
+    $<INSTALL_INTERFACE:include/tex/elibs/mve/libs>
+)
+target_link_libraries(mve
+  INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/elibs/mve/libs/mve/libmve${lib_ext}>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/elibs/mve/libs/util/libmve_util${lib_ext}>
+    $<INSTALL_INTERFACE:"mve">
+    $<INSTALL_INTERFACE:"mve_util">
+)
+
+
+##############################################
+# Combination target
+
+add_library(texrecon_elibs INTERFACE)
+target_link_libraries(texrecon_elibs
+  INTERFACE
+    mapmap
+    rayint
+    eigen
+    mve
+    ${JPEG_LIBRARIES}
+    ${PNG_LIBRARIES}
+    ${TIFF_LIBRARIES}
+    ${TBB_LIBRARIES}
+)
+
+
+##############################################
+# Installation instructions
+
+install(
+  TARGETS                   texrecon_elibs mapmap rayint eigen mve
+  EXPORT                    texrecon_elibs-export
+  LIBRARY DESTINATION       "${CMAKE_INSTALL_LIBDIR}"
+  ARCHIVE DESTINATION       "${CMAKE_INSTALL_LIBDIR}"
+  RUNTIME DESTINATION       "${CMAKE_INSTALL_BINDIR}"
+  INCLUDES DESTINATION      "${CMAKE_INSTALL_INCLUDEDIR}"
+)
+install(
+  EXPORT                    texrecon_elibs-export
+  FILE                      ${ELIBRARY_INTERFACE}Targets.cmake
+  NAMESPACE                 ${ELIBRARY_INTERFACE}::
+  DESTINATION               "${INSTALL_CONFIGDIR}"
+)
+install(
+  DIRECTORY                 "${CMAKE_SOURCE_DIR}/elibs"
+  DESTINATION               "${CMAKE_INSTALL_INCLUDEDIR}/tex"
+  FILES_MATCHING PATTERN    "*.h"
+)
+install(
+  FILES
+    "${CMAKE_SOURCE_DIR}/elibs/mve/libs/mve/libmve${lib_ext}"
+    "${CMAKE_SOURCE_DIR}/elibs/mve/libs/util/libmve_util${lib_ext}"
+  DESTINATION
+    "${CMAKE_INSTALL_LIBDIR}"
+)
+
