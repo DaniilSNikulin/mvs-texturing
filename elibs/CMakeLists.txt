@@ -82,6 +82,9 @@ target_link_libraries(mve
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/elibs/mve/libs/util/libmve_util${lib_ext}>
     $<INSTALL_INTERFACE:"mve">
     $<INSTALL_INTERFACE:"mve_util">
+    ${JPEG_LIBRARIES}
+    ${PNG_LIBRARIES}
+    ${TIFF_LIBRARIES}
 )
 
 
@@ -95,9 +98,6 @@ target_link_libraries(texrecon_elibs
     rayint
     eigen
     mve
-    ${JPEG_LIBRARIES}
-    ${PNG_LIBRARIES}
-    ${TIFF_LIBRARIES}
     ${TBB_LIBRARIES}
 )
 
